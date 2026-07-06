@@ -104,7 +104,16 @@ export interface YandexClusterSizes {
 export interface ClusterPlacemarkPress {
   lat: Double;
   lon: Double;
+  /**
+   * Append-order index. Unreliable when icon loads finish out of order or
+   * fail — kept for backward compatibility only. Prefer `markerId`.
+   */
   index: Int32;
+  /**
+   * The id passed for this point in `appendClusterMarkers`. Empty string when
+   * the point was appended without an id.
+   */
+  markerId: string;
 }
 
 export interface ClusteredYamapNativeProps extends ViewProps {

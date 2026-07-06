@@ -25,9 +25,17 @@ export type AppendClusterMarkersOptions = {
   recluster?: boolean;
 };
 
+/**
+ * A point for `appendClusterMarkers`. `id` is echoed back as `markerId` in
+ * `onClusterPlacemarkPress` — always prefer resolving taps by id: the numeric
+ * `index` depends on native icon-load completion order and silently drifts
+ * when loads race or fail.
+ */
+export type ClusterMarkerPoint = Point & { id?: string };
+
 export type ClusteredYamapRef = YamapRef & {
   /** Append points to the cluster collection without clearing existing ones. */
-  appendClusterMarkers: (points: Point[], options?: AppendClusterMarkersOptions) => void;
+  appendClusterMarkers: (points: ClusterMarkerPoint[], options?: AppendClusterMarkersOptions) => void;
   /** Remove all imperatively-added points from the cluster collection. */
   clearClusterMarkers: () => void;
 };
@@ -67,9 +75,9 @@ export type ClusteredYamapProps<T = any> = OmitEx<ClusteredYamapNativeProps,
    * Fires when the user taps a placemark added via
    * `ref.current.appendClusterMarkers(...)`. Does not fire for clusters of
    * size ≥ 2 (those go to the cluster collapse handler) and does not fire
-   * for `<Marker>` children. `index` is the zero-based append-order index
-   * across all `appendClusterMarkers` batches; it resets after
-   * `clearClusterMarkers()`.
+   * for `<Marker>` children. Resolve the tapped point via `markerId` (the
+   * `id` you passed in the point). `index` is the append-completion order —
+   * kept for backward compatibility, unreliable under concurrent appends.
    */
   onClusterPlacemarkPress?: (event: NativeSyntheticEvent<ClusterPlacemarkPress>) => void
 }

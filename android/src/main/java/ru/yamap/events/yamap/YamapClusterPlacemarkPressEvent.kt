@@ -10,6 +10,7 @@ class YamapClusterPlacemarkPressEvent(
     private val lat: Double,
     private val lon: Double,
     private val index: Int,
+    private val markerId: String,
 ) : Event<YamapClusterPlacemarkPressEvent>(surfaceId, viewId) {
     override fun getEventName() = EVENT_NAME
 
@@ -19,6 +20,7 @@ class YamapClusterPlacemarkPressEvent(
         putDouble("lat", lat)
         putDouble("lon", lon)
         putInt("index", index)
+        putString("markerId", markerId)
     }
 
     companion object {

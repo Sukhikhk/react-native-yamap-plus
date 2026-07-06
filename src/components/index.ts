@@ -4,6 +4,7 @@ export {ClusteredYamap} from './ClusteredYamap/ClusteredYamap';
 export {
   type ClusteredYamapProps,
   type ClusteredYamapRef,
+  type ClusterMarkerPoint,
   type AppendClusterMarkersOptions,
 } from './ClusteredYamap/types';
 

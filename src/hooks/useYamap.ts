@@ -62,7 +62,8 @@ export const useClusteredYamap = (
     ...buildBaseHandle(nativeRef, nativeCommands),
     appendClusterMarkers: (points, options) =>
       nativeCommands.appendClusterMarkers(nativeRef.current!, [{
-        points,
+        points: points.map(({lat, lon}) => ({lat, lon})),
+        markerIds: points.map((point) => point.id ?? ''),
         iconSource: getImageUri(options?.iconSource),
         anchorX: options?.anchor?.x,
         anchorY: options?.anchor?.y,

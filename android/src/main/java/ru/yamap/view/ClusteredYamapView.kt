@@ -43,6 +43,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
     private var clusterTextYOffset = 0
     private var hasImperativePlacemarks = false
     private val imperativeIndexMap = HashMap<PlacemarkMapObject, Int>()
+    private val imperativeIdMap = HashMap<PlacemarkMapObject, String>()
     private var imperativePlacemarkCounter = 0
 
     fun setClusterTextSize(size: Float) {
@@ -63,6 +64,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
 
     fun appendClusterMarkers(
         points: ArrayList<HashMap<String, Double>>,
+        markerIds: List<String>?,
         iconSource: String?,
         anchorX: Float?,
         anchorY: Float?,
@@ -95,6 +97,9 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
                 placemarksMap["" + placemark.geometry.latitude + placemark.geometry.longitude] =
                     placemark
                 imperativeIndexMap[placemark] = imperativePlacemarkCounter++
+                markerIds?.getOrNull(i)?.takeIf { it.isNotEmpty() }?.let { id ->
+                    imperativeIdMap[placemark] = id
+                }
                 placemark.addTapListener(this)
             }
             hasImperativePlacemarks = true
@@ -118,6 +123,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
         placemarksMap.clear()
         pointsList.clear()
         imperativeIndexMap.clear()
+        imperativeIdMap.clear()
         imperativePlacemarkCounter = 0
         hasImperativePlacemarks = false
     }
@@ -130,6 +136,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
         clusterCollection.clear()
         placemarksMap.clear()
         imperativeIndexMap.clear()
+        imperativeIdMap.clear()
         imperativePlacemarkCounter = 0
         val pt = ArrayList<Point>()
         for (i in points.indices) {
@@ -172,6 +179,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
     private fun updateUserMarkersColor() {
         clusterCollection.clear()
         imperativeIndexMap.clear()
+        imperativeIdMap.clear()
         imperativePlacemarkCounter = 0
         val placemarks = clusterCollection.addPlacemarks(
             pointsList,
@@ -242,6 +250,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
                 point.latitude,
                 point.longitude,
                 index,
+                imperativeIdMap[mapObject] ?: "",
             )
         )
         return true

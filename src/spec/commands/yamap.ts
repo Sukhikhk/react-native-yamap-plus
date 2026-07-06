@@ -73,6 +73,8 @@ export interface YamapNativeCommands {
     viewRef: React.ElementRef<ClusteredYamapComponentType>,
     args: Array<Readonly<{
       points: Point[],
+      /** Per-point ids, parallel to `points`. Echoed back as `markerId` in onClusterPlacemarkPress. */
+      markerIds?: string[],
       iconSource?: string,
       anchorX?: Double,
       anchorY?: Double,
