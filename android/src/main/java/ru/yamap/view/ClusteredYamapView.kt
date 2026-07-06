@@ -159,7 +159,14 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
     }
 
     fun setClusterIcon(source: String) {
+        if (clusterIconSource == source) return
         clusterIconSource = source
+        // Re-run clustering so already-formed clusters re-render with the new
+        // icon. Without this (and the icon-aware provider id below) MapKit
+        // keeps serving the previously rendered bitmap.
+        if (placemarksMap.isNotEmpty()) {
+            clusterCollection.clusterPlacemarks(CLUSTER_RADIUS, CLUSTER_MIN_ZOOM)
+        }
     }
 
     fun setClusterSize(params: ReadableMap?) {
@@ -168,7 +175,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
         clusterHeight =
             if (params != null && params.hasKey("height") && !params.isNull("height")) params.getInt(
                 "height"
-            ) else clusterWidth;
+            ) else clusterHeight;
     }
 
     fun setClustersColor(color: Int) {
@@ -257,8 +264,14 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
     }
 
     private inner class TextImageProvider(private val text: String) : ImageProvider() {
+        // MapKit caches rendered images by this id. It must therefore encode
+        // EVERYTHING the bitmap depends on — most importantly the cluster icon
+        // source: with the old "text_$count" id, changing clusterIcon kept
+        // serving stale bitmaps for any already-seen cluster size.
         override fun getId(): String {
-            return "text_$text"
+            return "text_${text}_${clusterIconSource.hashCode()}_${clusterWidth}x${clusterHeight}_" +
+                "${clusterColor}_${clusterTextColor}_${clusterTextSize}_" +
+                "${clusterTextXOffset}_${clusterTextYOffset}"
         }
 
         override fun getImage(): Bitmap {

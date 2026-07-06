@@ -845,8 +845,14 @@ using namespace facebook::react;
         if (image) {
             self->clusImage = image;
         }
-        if (points != nil) {
+        if (points != nil && [points count] > 0) {
             [self setClusteredMarkers:points];
+        } else {
+            // Icon arrived/changed while markers are driven imperatively (or
+            // none are set yet): force a reclustering pass so already-formed
+            // clusters re-render with the new icon instead of keeping a stale
+            // one (or the fallback circle drawn before the icon loaded).
+            [self clusterPlacemarks];
         }
     }];
 }
