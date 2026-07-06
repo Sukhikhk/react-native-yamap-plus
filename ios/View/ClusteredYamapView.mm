@@ -64,6 +64,14 @@ using namespace facebook::react;
         [super setClusterTextXOffset:newViewProps.clusterTextXOffset];
     }
 
+    if (oldViewProps.clusterRadius != newViewProps.clusterRadius) {
+        [super setClusterRadius:newViewProps.clusterRadius];
+    }
+
+    if (oldViewProps.clusterMinZoom != newViewProps.clusterMinZoom) {
+        [super setClusterMinZoom:newViewProps.clusterMinZoom];
+    }
+
     NSMutableArray<YMKPoint *> *points = [[NSMutableArray alloc] init];
     for (int i = 0; i < newViewProps.clusteredMarkers.size(); i++) {
         ClusteredYamapViewClusteredMarkersStruct pointStruct = newViewProps.clusteredMarkers.at(i);

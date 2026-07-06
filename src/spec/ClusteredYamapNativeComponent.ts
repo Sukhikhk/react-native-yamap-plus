@@ -149,6 +149,10 @@ export interface ClusteredYamapNativeProps extends ViewProps {
 
   clusteredMarkers: Point[];
   clusterColor?: Int32;
+  /** Cluster grouping radius in screen points. Values <= 0 fall back to the native default (50). */
+  clusterRadius?: Double;
+  /** Highest zoom at which placemarks still collapse into clusters. Values <= 0 fall back to the native default (12). */
+  clusterMinZoom?: Int32;
   clusterIcon?: string | undefined;
   clusterSize?: YandexClusterSizes;
   clusterTextSize?: Float;

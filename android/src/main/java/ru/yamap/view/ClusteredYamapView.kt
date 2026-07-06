@@ -45,6 +45,24 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
     private val imperativeIndexMap = HashMap<PlacemarkMapObject, Int>()
     private val imperativeIdMap = HashMap<PlacemarkMapObject, String>()
     private var imperativePlacemarkCounter = 0
+    private var clusterRadius = CLUSTER_RADIUS
+    private var clusterMinZoom = CLUSTER_MIN_ZOOM
+
+    fun setClusterRadius(radius: Double) {
+        clusterRadius = if (radius > 0) radius else CLUSTER_RADIUS
+        reclusterIfNeeded()
+    }
+
+    fun setClusterMinZoom(minZoom: Int) {
+        clusterMinZoom = if (minZoom > 0) minZoom else CLUSTER_MIN_ZOOM
+        reclusterIfNeeded()
+    }
+
+    private fun reclusterIfNeeded() {
+        if (placemarksMap.isNotEmpty()) {
+            clusterCollection.clusterPlacemarks(clusterRadius, clusterMinZoom)
+        }
+    }
 
     fun setClusterTextSize(size: Float) {
         clusterTextSize = size
@@ -104,7 +122,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
             }
             hasImperativePlacemarks = true
             if (recluster) {
-                clusterCollection.clusterPlacemarks(CLUSTER_RADIUS, CLUSTER_MIN_ZOOM)
+                clusterCollection.clusterPlacemarks(clusterRadius, clusterMinZoom)
             }
         }
 
@@ -155,7 +173,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
             }
         }
         hasImperativePlacemarks = false
-        clusterCollection.clusterPlacemarks(CLUSTER_RADIUS, CLUSTER_MIN_ZOOM)
+        clusterCollection.clusterPlacemarks(clusterRadius, clusterMinZoom)
     }
 
     fun setClusterIcon(source: String) {
@@ -165,7 +183,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
         // icon. Without this (and the icon-aware provider id below) MapKit
         // keeps serving the previously rendered bitmap.
         if (placemarksMap.isNotEmpty()) {
-            clusterCollection.clusterPlacemarks(CLUSTER_RADIUS, CLUSTER_MIN_ZOOM)
+            clusterCollection.clusterPlacemarks(clusterRadius, clusterMinZoom)
         }
     }
 
@@ -202,7 +220,7 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
                 child.setMarkerMapObject(placemark)
             }
         }
-        clusterCollection.clusterPlacemarks(CLUSTER_RADIUS, CLUSTER_MIN_ZOOM)
+        clusterCollection.clusterPlacemarks(clusterRadius, clusterMinZoom)
     }
 
     override fun addFeature(child: View?, index: Int) {

@@ -60,6 +60,8 @@ using namespace facebook::react;
     double clusterTextSize;
     double clusterTextYOffset;
     double clusterTextXOffset;
+    double clusterRadius;
+    NSInteger clusterMinZoom;
     NSMutableArray<YMKPlacemarkMapObject *> *clusterPlacemarks;
     YMKClusterizedPlacemarkCollection *clusterCollection;
     BOOL mapLoaded;
@@ -104,6 +106,8 @@ using namespace facebook::react;
         clusterTextSize = 45;
         clusterTextYOffset = 0;
         clusterTextXOffset = 0;
+        clusterRadius = 50;
+        clusterMinZoom = 12;
         [self addSubview:mapView];
     }
 
@@ -878,6 +882,16 @@ using namespace facebook::react;
     clusterTextXOffset = offset;
 }
 
+- (void)setClusterRadius:(double)radius {
+    clusterRadius = radius > 0 ? radius : 50;
+    [self clusterPlacemarks];
+}
+
+- (void)setClusterMinZoom:(NSInteger)minZoom {
+    clusterMinZoom = minZoom > 0 ? minZoom : 12;
+    [self clusterPlacemarks];
+}
+
 - (void)setClusteredMarkers:(NSArray<YMKPoint*>*) markers {
     // Empty prop arrives on every re-render when the consumer drives this
     // component imperatively — never clear in that case, it would wipe the
@@ -1001,7 +1015,7 @@ using namespace facebook::react;
 
 - (void) clusterPlacemarks {
     if ([clusterPlacemarks count] > 0) {
-        [clusterCollection clusterPlacemarksWithClusterRadius:50 minZoom:12];
+        [clusterCollection clusterPlacemarksWithClusterRadius:clusterRadius minZoom:clusterMinZoom];
     }
 }
 
