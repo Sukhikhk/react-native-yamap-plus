@@ -5,7 +5,9 @@
 
 + (id _Nonnull) instance;
 
-- (void)getWithSource: (NSString*_Nonnull) source completion:(void (NS_SWIFT_SENDABLE ^_Nonnull)(UIImage * _Nonnull image))completion;
+/// Always invokes `completion` exactly once on the main queue. `image` is nil
+/// when the source failed to load — callers must fall back, not drop.
+- (void)getWithSource: (NSString*_Nonnull) source completion:(void (NS_SWIFT_SENDABLE ^_Nonnull)(UIImage * _Nullable image))completion;
 
 @end
 

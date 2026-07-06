@@ -6,55 +6,63 @@ import android.graphics.BitmapFactory
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
+import android.util.Log
 import java.io.BufferedInputStream
-import java.io.IOException
 import java.net.URL
 
 class ImageCacheManager {
     companion object {
-        private val imageCache = mutableMapOf<String, Bitmap?>()
+        private const val TAG = "YamapImageCache"
 
-        @Throws(IOException::class)
-        fun getBitmapSync(context: Context, url: String): Bitmap {
-            if (url.contains("http://") || url.contains("https://")) {
-                val aURL = URL(url)
-                val conn = aURL.openConnection()
-                conn.connect()
-                val `is` = conn.getInputStream()
-                val bis = BufferedInputStream(`is`)
-                val bitmap = BitmapFactory.decodeStream(bis)
-                bis.close()
-                `is`.close()
-                return bitmap
-            } else if (url.contains("data:image")) {
-                val pureBase64Encoded = url.substring(url.indexOf(",") + 1)
-                val decodedString = Base64.decode(pureBase64Encoded, Base64.DEFAULT)
-                val bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+        private val imageCache = mutableMapOf<String, Bitmap>()
 
-                return  bitmap
-            } else if (url.startsWith("file://")) {
-                val filePath = url.removePrefix("file://")
-                val bitmap = BitmapFactory.decodeFile(filePath)
-                return bitmap
+        // Returns null (instead of throwing / returning a null-typed-as-nonnull
+        // bitmap) when the source cannot be decoded. Callers must fall back.
+        fun getBitmapSync(context: Context, url: String): Bitmap? {
+            imageCache[url]?.let { return it }
+
+            val bitmap: Bitmap? = try {
+                if (url.contains("http://") || url.contains("https://")) {
+                    val aURL = URL(url)
+                    val conn = aURL.openConnection()
+                    conn.connect()
+                    conn.getInputStream().use { stream ->
+                        BufferedInputStream(stream).use { bis ->
+                            BitmapFactory.decodeStream(bis)
+                        }
+                    }
+                } else if (url.contains("data:image")) {
+                    val pureBase64Encoded = url.substring(url.indexOf(",") + 1)
+                    val decodedString = Base64.decode(pureBase64Encoded, Base64.DEFAULT)
+                    BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+                } else if (url.startsWith("file://")) {
+                    BitmapFactory.decodeFile(url.removePrefix("file://"))
+                } else {
+                    val id = context.resources.getIdentifier(url, "drawable", context.packageName)
+                    if (id == 0) null else BitmapFactory.decodeResource(context.resources, id)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to load image from source: $url", e)
+                null
             }
 
-            val id = context.resources.getIdentifier(url, "drawable", context.packageName)
+            if (bitmap == null) {
+                Log.w(TAG, "Could not decode image from source: $url")
+            } else {
+                imageCache[url] = bitmap
+            }
 
-            return BitmapFactory.decodeResource(
-                context.resources,
-                id
-            )
+            return bitmap
         }
 
         private fun downloadImageBitmap(context: Context, url: String, cb: Callback<Bitmap?>) {
             object : Thread() {
                 override fun run() {
-                    try {
-                        val bitmap = getBitmapSync(context, url)
-                        Handler(Looper.getMainLooper()).post { cb.invoke(bitmap) }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                    // getBitmapSync never throws; the callback is ALWAYS posted
+                    // (with null on failure) so callers can fall back instead of
+                    // silently dropping the map object they were building.
+                    val bitmap = getBitmapSync(context, url)
+                    Handler(Looper.getMainLooper()).post { cb.invoke(bitmap) }
                 }
             }.start()
         }
@@ -67,12 +75,7 @@ class ImageCacheManager {
 
             downloadImageBitmap(context, source, object : Callback<Bitmap?> {
                 override fun invoke(arg: Bitmap?) {
-                    try {
-                        setImage(arg)
-                        imageCache[source] = arg
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                    setImage(arg)
                 }
             })
         }

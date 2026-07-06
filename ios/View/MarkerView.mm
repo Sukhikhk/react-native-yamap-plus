@@ -149,7 +149,7 @@ using namespace facebook::react;
         if ([_reactSubviews count] == 0) {
             if (source != nil && ![source isEqualToString:@""] && ![source isEqual:lastSource]) {
                 [[ImageCacheManager instance] getWithSource:source completion:^(UIImage *image) {
-                    if ([self->mapObject isValid]) {
+                    if (image && [self->mapObject isValid]) {
                         [self->mapObject setIconWithImage:image];
                         self->lastSource = self->source;
                         [self updateMarker];
@@ -180,7 +180,7 @@ using namespace facebook::react;
         if ([_reactSubviews count] == 0) {
             if (source != nil && ![source isEqualToString:@""] && ![source isEqual:lastSource]) {
                 [[ImageCacheManager instance] getWithSource:source completion:^(UIImage *image) {
-                    if ([self->mapObject isValid]) {
+                    if (image && [self->mapObject isValid]) {
                         [self->mapObject setIconWithImage:image];
                         self->lastSource = self->source;
                         [self updateClusterMarker];

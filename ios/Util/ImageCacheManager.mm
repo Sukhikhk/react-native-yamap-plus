@@ -23,38 +23,48 @@ static ImageCacheManager *_instance = nil;
     return _instance;
 }
 
-- (void)getWithSource:(NSString * _Nonnull)source completion:(void (^ _Nonnull __strong)(UIImage * _Nonnull __strong))completion {
-    NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithURL:[NSURL URLWithString:source] completionHandler:^(NSData * _Nullable taskData, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+// Contract: completion is ALWAYS invoked exactly once, on the main queue.
+// A nil image means the source could not be loaded — callers must handle it
+// (fall back to a default icon) instead of silently dropping the map object.
+- (void)getWithSource:(NSString * _Nonnull)source completion:(void (^ _Nonnull __strong)(UIImage * _Nullable __strong))completion {
+    UIImage *cachedImage = [_imageCache objectForKey:source];
+    if (cachedImage) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion(cachedImage);
+        });
+        return;
+    }
 
-        UIImage *cachedImage = [_imageCache objectForKey:source];
+    NSURL *url = [NSURL URLWithString:source];
+    if (!url) {
+        NSLog(@"[Yamap] Invalid image source URL: %@", source);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion(nil);
+        });
+        return;
+    }
 
-        if (cachedImage) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                completion(cachedImage);
-            });
-            return;
-        }
+    NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithURL:url completionHandler:^(NSData * _Nullable taskData, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        UIImage *image = nil;
 
         if (error) {
-            NSLog(@"Failed fetch data with error: %@", error);
+            NSLog(@"[Yamap] Failed to fetch image data with error: %@", error);
+        } else if (!taskData) {
+            NSLog(@"[Yamap] Failed to load image data from URL: %@", source);
+        } else {
+            image = [UIImage imageWithData:taskData];
+            if (!image) {
+                NSLog(@"[Yamap] Failed to create image from loaded data: %@", source);
+            }
         }
 
-        if (!taskData) {
-            NSLog(@"Failed to load image data from URL: %@", source);
-            return;
-        }
-
-        UIImage *image = [UIImage imageWithData:taskData];
-        if (!image) {
-            NSLog(@"Failed to create image from loaded data: %@", source);
-            return;
+        if (image) {
+            [_imageCache setObject:image forKey:source];
         }
 
         dispatch_async(dispatch_get_main_queue(), ^{
             completion(image);
         });
-
-        [_imageCache setObject:image forKey:source];
     }];
     [task resume];
 }

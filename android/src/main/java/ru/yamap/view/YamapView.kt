@@ -297,6 +297,7 @@ open class YamapView(context: Context?) : MapView(context), UserLocationObjectLi
         // todo[0]: можно устанавливать разные иконки на покой и движение. Дополнительно можно устанавливать стиль иконки, например scale
         userLocationIcon = iconSource
         ImageCacheManager.getImage(context, iconSource, fun (image: Bitmap?) {
+            if (image == null) return
             userLocationBitmap = image
             updateUserLocationIcon()
         })

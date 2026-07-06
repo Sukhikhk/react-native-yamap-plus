@@ -673,6 +673,7 @@ using namespace facebook::react;
 // PROPS
 - (void)setUserLocationIcon:(NSString *)source {
     [[ImageCacheManager instance] getWithSource:source completion:^(UIImage *image) {
+        if (!image) return;
         self->userLocationImage = image;
         [self updateUserIcon];
     }];
@@ -834,7 +835,9 @@ using namespace facebook::react;
 
 - (void)setClusterIcon:(NSString *)source points:(NSArray<YMKPoint *> * _Nullable)points {
     [[ImageCacheManager instance] getWithSource:source completion:^(UIImage *image) {
-        self->clusImage = image;
+        if (image) {
+            self->clusImage = image;
+        }
         if (points != nil) {
             [self setClusteredMarkers:points];
         }

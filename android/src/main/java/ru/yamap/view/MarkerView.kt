@@ -118,6 +118,7 @@ class MarkerView(context: Context?) : ReactViewGroup(context), MapObjectTapListe
             if (_children.size == 0 && _iconSource != "") {
                 _iconSource?.let { source ->
                     ImageCacheManager.getImage(context, source, fun (image: Bitmap?) {
+                        if (image == null) return
                         ImageProvider.fromBitmap(image).let {
                             (rnMapObject as PlacemarkMapObject).setIcon(it)
                             (rnMapObject as PlacemarkMapObject).setIconStyle(iconStyle)

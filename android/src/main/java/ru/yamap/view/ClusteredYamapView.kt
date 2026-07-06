@@ -262,8 +262,14 @@ class ClusteredYamapView(context: Context?) : YamapView(context), ClusterListene
 
             val textMetrics = textPaint.fontMetrics
 
-            if (clusterIconSource != "" && clusterWidth != 0 && clusterHeight != 0) {
-                val clusterBitmap = ImageCacheManager.getBitmapSync(context, clusterIconSource)
+            // getBitmapSync returns null when the icon can't be decoded — fall
+            // through to the default circle instead of crashing in drawBitmap.
+            val clusterBitmap =
+                if (clusterIconSource != "" && clusterWidth != 0 && clusterHeight != 0)
+                    ImageCacheManager.getBitmapSync(context, clusterIconSource)
+                else null
+
+            if (clusterBitmap != null) {
                 val bitmap = createBitmap(clusterWidth, clusterHeight);
                 val canvas = Canvas(bitmap);
 
